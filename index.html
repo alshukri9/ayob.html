@@ -1,0 +1,214 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ayoob GPA System</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+color:white;
+}
+
+.container{
+background:white;
+color:#333;
+width:95%;
+max-width:520px;
+padding:25px;
+border-radius:20px;
+box-shadow:0 15px 40px rgba(0,0,0,0.5);
+}
+
+h1{
+text-align:center;
+color:#2c5364;
+margin-bottom:5px;
+}
+
+.sub-title{
+text-align:center;
+font-size:14px;
+margin-bottom:20px;
+color:gray;
+}
+
+.subject{
+background:#f1f3f8;
+padding:10px;
+margin:10px 0;
+border-radius:12px;
+display:flex;
+flex-direction:column;
+}
+
+input, select{
+padding:8px;
+margin:5px 0;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+button{
+padding:10px;
+margin:6px 0;
+border:none;
+border-radius:10px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.add-btn{background:#2c5364;color:white;}
+.calc-btn{background:#28a745;color:white;}
+.delete-btn{background:#dc3545;color:white;}
+.clear-btn{background:#6c757d;color:white;}
+
+.result-circle{
+width:170px;
+height:170px;
+margin:20px auto;
+border-radius:50%;
+background:linear-gradient(135deg,#2c5364,#0f2027);
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:32px;
+font-weight:bold;
+transition:0.4s;
+box-shadow:0 8px 25px rgba(0,0,0,0.5);
+}
+
+.grade-text{
+text-align:center;
+font-size:20px;
+font-weight:bold;
+color:#2c5364;
+}
+
+.footer{
+text-align:center;
+margin-top:15px;
+font-size:12px;
+color:gray;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+<h1>Ayoob GPA System</h1>
+<div class="sub-title">Professional University GPA Calculator</div>
+
+<div id="subjects"></div>
+
+<button class="add-btn" onclick="addSubject()">➕ إضافة مادة</button>
+<button class="calc-btn" onclick="calculate()">احسب المعدل</button>
+<button class="clear-btn" onclick="clearAll()">🗑 مسح الكل</button>
+
+<div class="result-circle" id="gpa">0.00</div>
+<div class="grade-text" id="gradeText"></div>
+
+<div class="footer">Powered by Ayoob 🔥</div>
+
+</div>
+
+<script>
+
+const gradeValues = {
+"D":0.5,"DD":1,"C":1.5,"CC":2,
+"B":2.5,"BB":3,"A":3.5,"AA":4
+};
+
+function addSubject(name="",units="",grade=""){
+const div=document.createElement("div");
+div.className="subject";
+div.innerHTML=`
+<input type="text" placeholder="اسم المادة" value="${name}">
+<input type="number" class="units" placeholder="عدد الوحدات" value="${units}">
+<select class="grade">
+<option value="">اختر التصفاية</option>
+${Object.keys(gradeValues).map(g=>`<option value="${g}" ${g==grade?"selected":""}>${g}</option>`).join("")}
+</select>
+<button class="delete-btn" onclick="this.parentElement.remove(); saveData()">🗑 حذف</button>
+`;
+document.getElementById("subjects").appendChild(div);
+saveData();
+}
+
+function calculate(){
+const units=document.querySelectorAll(".units");
+const grades=document.querySelectorAll(".grade");
+let numerator=0,totalUnits=0;
+
+for(let i=0;i<units.length;i++){
+let u=parseFloat(units[i].value);
+let g=grades[i].value;
+if(!isNaN(u)&&g!==""){
+numerator+=u*gradeValues[g];
+totalUnits+=u;
+}
+}
+
+if(totalUnits>0){
+let gpa=(numerator/totalUnits).toFixed(2);
+document.getElementById("gpa").innerText=gpa;
+document.getElementById("gradeText").innerText=getOverall(gpa);
+document.getElementById("gpa").style.transform="scale(1.1)";
+setTimeout(()=>{document.getElementById("gpa").style.transform="scale(1)"},300);
+}
+saveData();
+}
+
+function getOverall(gpa){
+if(gpa<1) return "ضعيف";
+if(gpa<2) return "مقبول";
+if(gpa<3) return "جيد";
+if(gpa<3.5) return "جيد جداً";
+return "ممتاز";
+}
+
+function clearAll(){
+localStorage.clear();
+document.getElementById("subjects").innerHTML="";
+addSubject();
+document.getElementById("gpa").innerText="0.00";
+document.getElementById("gradeText").innerText="";
+}
+
+function saveData(){
+const subjects=[];
+document.querySelectorAll(".subject").forEach(s=>{
+subjects.push({
+name:s.querySelector("input[type=text]").value,
+units:s.querySelector(".units").value,
+grade:s.querySelector(".grade").value
+});
+});
+localStorage.setItem("gpaData",JSON.stringify(subjects));
+}
+
+function loadData(){
+let data=JSON.parse(localStorage.getItem("gpaData"));
+if(data && data.length>0){
+data.forEach(d=>addSubject(d.name,d.units,d.grade));
+}else{
+addSubject();
+}
+}
+
+loadData();
+
+</script>
+
+</body>
+</html>
